@@ -1,12 +1,13 @@
-import { useState, useRef } from "react";
-import logo from "./assets/images/logo-universal.png";
+import { useState, useRef, useEffect } from "react";
 import "./App.css";
-import {
-  LoadModel,
-  TranscribeFile,
-  GetModelInfo,
-  SaveAndTranscribeRecording,
-} from "../wailsjs/go/main/App";
+import VoiceVisualizer from "./components/VoiceVisualizer";
+import CircleButton from "./components/Button";
+// import {
+//   LoadModel,
+//   TranscribeFile,
+//   GetModelInfo,
+//   SaveAndTranscribeRecording,
+// } from "../wailsjs/go/main/App";
 
 function App() {
   const [modelInfo, setModelInfo] = useState<string>("No model loaded");
@@ -14,95 +15,99 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string>("");
   const [modelPath, setModelPath] = useState(
-    "./whisper.cpp/models/ggml-base.en.bin"
+    "./whisper.cpp/models/ggml-medium.en.bin",
   );
   const [audioPath, setAudioPath] = useState("");
-  const [isRecording, setIsRecording] = useState(false);
+  const [isRecording, setIsRecording] = useState<Boolean>(false);
   const [dictationText, setDictationText] = useState<string>("");
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
 
-  async function loadModel() {
-    if (!modelPath) {
-      setError("Please enter a model path");
-      return;
-    }
+  useEffect(() => {
+    console.log("effect");
+  }, []);
 
-    setIsLoading(true);
-    setError("");
+  // async function loadModel() {
+  //   if (!modelPath) {
+  //     setError("Please enter a model path");
+  //     return;
+  //   }
 
-    try {
-      await LoadModel(modelPath);
-      const info = await GetModelInfo();
-      setModelInfo(info);
-      setError("");
-    } catch (err) {
-      setError(`Failed to load model: ${err}`);
-    } finally {
-      setIsLoading(false);
-    }
-  }
+  //   setIsLoading(true);
+  //   setError("");
 
-  async function transcribeAudio() {
-    if (!audioPath) {
-      setError("Please enter an audio file path");
-      return;
-    }
+  //   try {
+  //     await LoadModel(modelPath);
+  //     const info = await GetModelInfo();
+  //     setModelInfo(info);
+  //     setError("");
+  //   } catch (err) {
+  //     setError(`Failed to load model: ${err}`);
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // }
 
-    setIsLoading(true);
-    setError("");
-    setTranscription("");
+  // async function transcribeAudio() {
+  //   if (!audioPath) {
+  //     setError("Please enter an audio file path");
+  //     return;
+  //   }
 
-    try {
-      const result = await TranscribeFile(audioPath);
-      setTranscription(result);
-      setError("");
-    } catch (err) {
-      setError(`Transcription failed: ${err}`);
-    } finally {
-      setIsLoading(false);
-    }
-  }
+  //   setIsLoading(true);
+  //   setError("");
+  //   setTranscription("");
 
-  async function startRecording() {
-    // Check if model is loaded first
-    if (modelInfo === "No model loaded") {
-      setError(
-        "Please load the Whisper model first! Click 'Load Model' above before recording."
-      );
-      return;
-    }
+  //   try {
+  //     const result = await TranscribeFile(audioPath);
+  //     setTranscription(result);
+  //     setError("");
+  //   } catch (err) {
+  //     setError(`Transcription failed: ${err}`);
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // }
 
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream);
-      mediaRecorderRef.current = mediaRecorder;
-      audioChunksRef.current = [];
+  // async function startRecording() {
+  //   // Check if model is loaded first
+  //   if (modelInfo === "No model loaded") {
+  //     setError(
+  //       "Please load the Whisper model first! Click 'Load Model' above before recording."
+  //     );
+  //     return;
+  //   }
 
-      mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          audioChunksRef.current.push(event.data);
-        }
-      };
+  //   try {
+  //     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  //     const mediaRecorder = new MediaRecorder(stream);
+  //     mediaRecorderRef.current = mediaRecorder;
+  //     audioChunksRef.current = [];
 
-      mediaRecorder.onstop = async () => {
-        const audioBlob = new Blob(audioChunksRef.current, {
-          type: "audio/webm",
-        });
-        await transcribeRecording(audioBlob);
+  //     mediaRecorder.ondataavailable = (event) => {
+  //       if (event.data.size > 0) {
+  //         audioChunksRef.current.push(event.data);
+  //       }
+  //     };
 
-        // Stop all tracks to release the microphone
-        stream.getTracks().forEach((track) => track.stop());
-      };
+  //     mediaRecorder.onstop = async () => {
+  //       const audioBlob = new Blob(audioChunksRef.current, {
+  //         type: "audio/webm",
+  //       });
+  //       await transcribeRecording(audioBlob);
 
-      mediaRecorder.start();
-      setIsRecording(true);
-      setError("");
-    } catch (err) {
-      setError(`Failed to start recording: ${err}`);
-    }
-  }
+  //       // Stop all tracks to release the microphone
+  //       stream.getTracks().forEach((track) => track.stop());
+  //     };
+
+  //     mediaRecorder.start();
+  //     setIsRecording(true);
+  //     setError("");
+  //   } catch (err) {
+  //     setError(`Failed to start recording: ${err}`);
+  //   }
+  // }
 
   function stopRecording() {
     if (mediaRecorderRef.current && isRecording) {
@@ -111,26 +116,26 @@ function App() {
     }
   }
 
-  async function transcribeRecording(audioBlob: Blob) {
-    setIsLoading(true);
-    setError("");
+  // async function transcribeRecording(audioBlob: Blob) {
+  //   setIsLoading(true);
+  //   setError("");
 
-    try {
-      // Convert blob to array buffer then to byte array
-      const arrayBuffer = await audioBlob.arrayBuffer();
-      const uint8Array = new Uint8Array(arrayBuffer);
-      const byteArray = Array.from(uint8Array);
+  //   try {
+  //     // Convert blob to array buffer then to byte array
+  //     const arrayBuffer = await audioBlob.arrayBuffer();
+  //     const uint8Array = new Uint8Array(arrayBuffer);
+  //     const byteArray = Array.from(uint8Array);
 
-      const result = await SaveAndTranscribeRecording(byteArray);
-      setDictationText((prev) => prev + result + " ");
-      setTranscription(result);
-      setError("");
-    } catch (err) {
-      setError(`Recording transcription failed: ${err}`);
-    } finally {
-      setIsLoading(false);
-    }
-  }
+  //     const result = await SaveAndTranscribeRecording(byteArray);
+  //     setDictationText((prev) => prev + result + " ");
+  //     setTranscription(result);
+  //     setError("");
+  //   } catch (err) {
+  //     setError(`Recording transcription failed: ${err}`);
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // }
 
   function clearDictation() {
     setDictationText("");
@@ -142,51 +147,23 @@ function App() {
 
   return (
     <div id="App">
-      <img src={logo} id="logo" alt="logo" />
-      <h1>Voice Transcription & Dictation</h1>
-
-      <div
-        style={{
-          marginBottom: "20px",
-          padding: "10px",
-          backgroundColor: "#f0f0f0",
-          borderRadius: "5px",
-        }}
-      >
-        <strong>Status:</strong> {modelInfo}
-      </div>
-
-      <div className="section">
-        <h2>1. Load Whisper Model</h2>
-        <div className="input-box">
-          <input
-            className="input"
-            placeholder="Model path (e.g., ./whisper.cpp/models/ggml-base.en.bin)"
-            value={modelPath}
-            onChange={(e) => setModelPath(e.target.value)}
-            type="text"
-          />
-          <button className="btn" onClick={loadModel} disabled={isLoading}>
-            {isLoading ? "Loading..." : "Load Model"}
-          </button>
-        </div>
-      </div>
-
       <div
         className="section"
         style={{
-          backgroundColor: "#e3f2fd",
+          backgroundColor: "transparent",
           padding: "20px",
           borderRadius: "8px",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
         }}
       >
-        <h2>🎤 Voice Dictation (Accessibility Feature)</h2>
-        <p style={{ fontSize: "14px", color: "#555", marginBottom: "15px" }}>
-          Record your voice and convert it to text - perfect for hands-free
-          input
-        </p>
-
-        <div style={{ display: "flex", gap: "10px", marginBottom: "15px" }}>
+        <VoiceVisualizer isRecording={isRecording} />
+        <CircleButton
+          setIsRecording={setIsRecording}
+          isRecording={isRecording}
+        />
+        {/* <div style={{ display: "flex", gap: "10px", marginBottom: "15px" }}>
           {!isRecording ? (
             <button
               className="btn"
@@ -234,58 +211,7 @@ function App() {
           >
             📋 Copy to Clipboard
           </button>
-        </div>
-
-        {isRecording && (
-          <div
-            style={{
-              padding: "10px",
-              backgroundColor: "#ffebee",
-              borderRadius: "5px",
-              marginBottom: "15px",
-              border: "2px solid #f44336",
-            }}
-          >
-            <strong>🔴 Recording in progress...</strong> Click "Stop Recording"
-            when finished
-          </div>
-        )}
-
-        <div
-          style={{
-            minHeight: "150px",
-            padding: "15px",
-            backgroundColor: "white",
-            border: "2px solid #2196F3",
-            borderRadius: "5px",
-            textAlign: "left",
-            fontSize: "16px",
-            lineHeight: "1.6",
-            whiteSpace: "pre-wrap",
-          }}
-        >
-          {dictationText || "Your dictation will appear here..."}
-        </div>
-      </div>
-
-      <div className="section">
-        <h2>📁 Transcribe Audio File</h2>
-        <div className="input-box">
-          <input
-            className="input"
-            placeholder="Audio file path (e.g., ./whisper.cpp/samples/jfk.mp3)"
-            value={audioPath}
-            onChange={(e) => setAudioPath(e.target.value)}
-            type="text"
-          />
-          <button
-            className="btn"
-            onClick={transcribeAudio}
-            disabled={isLoading}
-          >
-            {isLoading ? "Transcribing..." : "Transcribe File"}
-          </button>
-        </div>
+        </div> */}
       </div>
 
       {error && (
@@ -301,50 +227,6 @@ function App() {
           <strong>Error:</strong> {error}
         </div>
       )}
-
-      {transcription && (
-        <div
-          style={{
-            marginTop: "20px",
-            padding: "15px",
-            backgroundColor: "#e8f5e9",
-            borderRadius: "5px",
-            textAlign: "left",
-          }}
-        >
-          <h3>Last Transcription:</h3>
-          <p style={{ fontSize: "16px", lineHeight: "1.5" }}>{transcription}</p>
-        </div>
-      )}
-
-      <div
-        style={{
-          marginTop: "30px",
-          padding: "10px",
-          fontSize: "12px",
-          color: "#666",
-        }}
-      >
-        <p>
-          <strong>Quick Start:</strong>
-        </p>
-        <ol
-          style={{ textAlign: "left", margin: "10px auto", maxWidth: "600px" }}
-        >
-          <li>
-            Click "Load Model" to load the Whisper AI model (default path
-            provided)
-          </li>
-          <li>Click "Start Recording" and speak into your microphone</li>
-          <li>Click "Stop Recording" to transcribe your speech</li>
-          <li>Use "Copy to Clipboard" to use the text elsewhere</li>
-        </ol>
-        <p>
-          <em>
-            Note: Microphone permissions required. ffmpeg must be installed.
-          </em>
-        </p>
-      </div>
 
       <style>{`
         @keyframes pulse {

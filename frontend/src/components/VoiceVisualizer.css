@@ -1,0 +1,76 @@
+/* The Pill Container */
+.voice-capsule {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 120px; /* Adjust width as needed */
+  height: 60px; /* Adjust height as needed */
+  background-color: #fdfdf6; /* Cream color from your video */
+  border: 2px solid #000; /* Black border */
+  border-radius: 9999px; /* This creates the "Pill" shape */
+  padding: 0 10px;
+  box-shadow: 4px 4px 0px rgba(0, 0, 0, 1); /* Optional: Retro/Neubrutalism shadow */
+  transition: all 0.3s ease;
+}
+
+/* Optional: Change style when not recording */
+.voice-capsule:not(.active) {
+  opacity: 0.7;
+  transform: scale(0.95);
+}
+
+.wave-container {
+  display: flex;
+  align-items: center; /* Centers bars vertically */
+  justify-content: center;
+  gap: 6px; /* Space between bars */
+  height: 100%;
+}
+
+/* The Individual Bars */
+.wave-bar {
+  width: 6px;
+  height: 6px; /* Resting height (dot) */
+  background-color: #000;
+  border-radius: 9999px;
+  transition: height 0.3s ease;
+}
+
+/* The Animation */
+.wave-bar.animate {
+  animation: wave 1s ease-in-out infinite;
+}
+
+/* We use different keyframes or delays to make it look organic. 
+   Here is a simple wave pattern.
+*/
+@keyframes wave {
+  0% {
+    height: 6px;
+  }
+  50% {
+    height: 35px; /* Max height of the bar */
+  }
+  100% {
+    height: 6px;
+  }
+}
+
+/* To make it look more random like a voice, 
+   we can target specific children to vary the speed 
+*/
+.wave-bar.animate:nth-child(1) {
+  animation-duration: 0.8s;
+}
+.wave-bar.animate:nth-child(2) {
+  animation-duration: 1.1s;
+}
+.wave-bar.animate:nth-child(3) {
+  animation-duration: 1.3s;
+}
+.wave-bar.animate:nth-child(4) {
+  animation-duration: 0.9s;
+}
+.wave-bar.animate:nth-child(5) {
+  animation-duration: 1.2s;
+}

@@ -13,13 +13,13 @@ var assets embed.FS
 
 func main() {
 	// Create an instance of the app structure
-	app := NewApp()
+	app := NewApp();
 
 	// Create application with options
 	err := wails.Run(&options.App{
 		Title:  "go-create",
-		Width:  1024,
-		Height: 768,
+		Width:  255,
+		Height: 104,
 		AssetServer: &assetserver.Options{
 			Assets: assets,
 		},
@@ -28,6 +28,8 @@ func main() {
 		Bind: []interface{}{
 			app,
 		},
+		DisableResize: true,
+		AlwaysOnTop: true,
 	})
 
 	if err != nil {
