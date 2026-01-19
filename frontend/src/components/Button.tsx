@@ -5,8 +5,8 @@ const CircleButton = ({
   isRecording,
   setIsRecording,
 }: {
-  isRecording?: Boolean;
-  setIsRecording: React.Dispatch<React.SetStateAction<Boolean>>;
+  isRecording?: boolean;
+  setIsRecording: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
   return (
     <button

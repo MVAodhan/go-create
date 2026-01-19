@@ -16,8 +16,9 @@ function App() {
   const [modelPath, setModelPath] = useState(
     "./whisper.cpp/models/ggml-medium.en.bin",
   );
-  const [isRecording, setIsRecording] = useState<Boolean>(false);
+  const [isRecording, setIsRecording] = useState<boolean>(false);
   const [dictationText, setDictationText] = useState<string>("");
+  const [isCopied, setIsCopied] = useState<boolean>(false);
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
@@ -32,6 +33,8 @@ function App() {
   // Handle recording state changes
   useEffect(() => {
     if (isRecording) {
+      // Reset copied state when recording starts
+      setIsCopied(false);
       startRecording();
     } else {
       stopRecording();
@@ -122,6 +125,8 @@ function App() {
       setDictationText((prev) => prev + result + " ");
       setTranscription(result);
       setError("");
+      // Set copied state to true after successful transcription
+      setIsCopied(true);
       console.log("result", result);
     } catch (err) {
       console.log(err);
@@ -150,7 +155,7 @@ function App() {
       >
         {modelInfo && (
           <>
-            <VoiceVisualizer isRecording={isRecording} />
+            <VoiceVisualizer isRecording={isRecording} isCopied={isCopied} />
             <CircleButton
               setIsRecording={setIsRecording}
               isRecording={isRecording}
