@@ -10,11 +10,11 @@
     "name": "Aodhan Hamilton",
     "email": "hamilton.aodhan@gmail.com"
   },
-  "binaries": [
-    {
-      "name": "models",
-      "type": "directory",
-      "path": "./whisper.cpp/models"
-    }
-  ]
+  "assetdir": "bundled-resources",
+  "info": {
+    "productName": "Go Create",
+    "productVersion": "1.0.0",
+    "copyright": "Copyright 2026 Aodhan Hamilton",
+    "comments": "Desktop dictation app with Whisper.cpp"
+  }
 }

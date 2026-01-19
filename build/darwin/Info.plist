@@ -23,8 +23,6 @@
         <string>true</string>
         <key>NSHumanReadableCopyright</key>
         <string>{{.Info.Copyright}}</string>
-        <key>NSMicrophoneUsageDescription</key>
-        <string>This app needs access to your microphone for voice dictation and transcription features.</string>
         {{if .Info.FileAssociations}}
         <key>CFBundleDocumentTypes</key>
         <array>
@@ -61,5 +59,7 @@
           {{end}}
         </array>
         {{end}}
+        <key>NSMicrophoneUsageDescription</key>
+        <string>This app needs access to your microphone for voice dictation and transcription.</string>
     </dict>
 </plist>

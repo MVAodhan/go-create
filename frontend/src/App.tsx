@@ -6,6 +6,7 @@ import {
   LoadModel,
   GetModelInfo,
   SaveAndTranscribeRecording,
+  GetBundledModelPath,
 } from "../wailsjs/go/main/App";
 
 function App() {
@@ -14,7 +15,7 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string>("");
   const [modelPath, setModelPath] = useState(
-    "./whisper.cpp/models/ggml-medium.en.bin",
+    "./bundled-resources/models/ggml-medium.en.bin",
   );
   const [isRecording, setIsRecording] = useState<boolean>(false);
   const [dictationText, setDictationText] = useState<string>("");
@@ -24,9 +25,29 @@ function App() {
   const audioChunksRef = useRef<Blob[]>([]);
 
   useEffect(() => {
+    async function initModel() {
+      try {
+        console.log("Initializing model...");
+        // Get the correct model path for development or production
+        const bundledPath = await GetBundledModelPath();
+        console.log("Bundled model path:", bundledPath);
+        setModelPath(bundledPath);
+
+        // Load the model
+        console.log("Loading model from:", bundledPath);
+        await LoadModel(bundledPath);
+        const info = await GetModelInfo();
+        console.log("Model loaded successfully:", info);
+        setModelInfo(info);
+      } catch (err) {
+        console.error("Model initialization error:", err);
+        setError(`Failed to initialize model: ${err}`);
+        setModelInfo("Error loading model"); // Set this so UI renders
+      }
+    }
+
     if (!modelInfo) {
-      loadModel();
-      console.log(modelInfo);
+      initModel();
     }
   }, []);
 
@@ -142,6 +163,20 @@ function App() {
 
   return (
     <div id="App">
+      {error && (
+        <div
+          style={{
+            padding: "20px",
+            backgroundColor: "#ff4444",
+            color: "white",
+            borderRadius: "8px",
+            marginBottom: "20px",
+          }}
+        >
+          <strong>Error:</strong> {error}
+        </div>
+      )}
+
       <div
         className="section"
         style={{
@@ -163,6 +198,12 @@ function App() {
           </>
         )}
       </div>
+
+      {!modelInfo && !error && (
+        <div style={{ padding: "20px", textAlign: "center" }}>
+          Loading model...
+        </div>
+      )}
 
       <style>{`
         @keyframes pulse {

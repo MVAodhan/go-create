@@ -31,17 +31,47 @@ func NewApp() *App {
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
 	
+	// Set Metal shader path for GPU acceleration
+	execPath, _ := os.Executable()
+	execDir := filepath.Dir(execPath)
+	
+	// In production (app bundle): Resources is one level up from MacOS
+	metalPath := filepath.Join(execDir, "..", "Resources")
+	
+	// Check if we're in development mode (no app bundle)
+	if _, err := os.Stat(filepath.Join(metalPath, "ggml-metal.metal")); os.IsNotExist(err) {
+		// Development mode: use local bundled-resources directory
+		metalPath = filepath.Join(execDir, "bundled-resources")
+	}
+	
+	os.Setenv("GGML_METAL_PATH_RESOURCES", metalPath)
 }
 
 func (a *App) GetBundledModelPath() string {
     execPath, _ := os.Executable()
     execDir := filepath.Dir(execPath)
     
-    // On macOS: app bundle structure
+    // On macOS in production: app bundle structure is:
+    // MyApp.app/Contents/MacOS/myapp (executable)
+    // MyApp.app/Contents/Resources/ (bundled resources)
+    modelPath := filepath.Join(execDir, "..", "Resources", "models", "ggml-medium.en.bin")
     
-	return filepath.Join(execDir, "..", "Resources", "models", "ggml-base.en.bin")
-
-    
+    // Check if production path exists
+    if _, err := os.Stat(modelPath); err == nil {
+		return modelPath
+	}
+	
+	// Development mode: executable is deep in build/bin/go-create.app/Contents/MacOS/
+	// We need to go up to project root to find bundled-resources
+	// From build/bin/go-create.app/Contents/MacOS/go-create, go up 5 levels to project root
+	projectRoot := filepath.Join(execDir, "..", "..", "..", "..", "..")
+	modelPath = filepath.Join(projectRoot, "bundled-resources", "models", "ggml-medium.en.bin")
+	if _, err := os.Stat(modelPath); err == nil {
+		return modelPath
+	}
+	
+	// Fallback to original location in whisper.cpp/models
+	return filepath.Join(projectRoot, "whisper.cpp", "models", "ggml-medium.en.bin")
 }
 
 // LoadModel loads the Whisper model from the specified path
@@ -71,7 +101,22 @@ func (a *App) LoadModel(modelPath string) error {
 
 // ConvertToWav converts an audio file to 16kHz mono WAV format using ffmpeg
 func (a *App) ConvertToWav(inputPath, outputPath string) error {
-	cmd := exec.Command("ffmpeg",
+	// Try to find ffmpeg in common locations
+	ffmpegPath := "ffmpeg"
+	commonPaths := []string{
+		"/opt/homebrew/bin/ffmpeg",
+		"/usr/local/bin/ffmpeg",
+		"/usr/bin/ffmpeg",
+	}
+	
+	for _, path := range commonPaths {
+		if _, err := os.Stat(path); err == nil {
+			ffmpegPath = path
+			break
+		}
+	}
+	
+	cmd := exec.Command(ffmpegPath,
 		"-y",                // Overwrite output file
 		"-i", inputPath,     // Input file
 		"-ar", "16000",      // 16kHz sample rate

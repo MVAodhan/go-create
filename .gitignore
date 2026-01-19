@@ -1,6 +1,14 @@
-build/bin
+build/**
+# build/darwin
+# build/bin
 node_modules
 frontend/dist
+
+# macOS system files
+.DS_Store
+
+# Bundled resources for production builds (large files)
+bundled-resources/
 
 # Whisper.cpp build artifacts and generated files
 whisper.cpp/build/
