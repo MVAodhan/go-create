@@ -5,3 +5,27 @@
 export function ConvertToWav(arg1, arg2) {
   return window['go']['main']['App']['ConvertToWav'](arg1, arg2);
 }
+
+export function GetBundledModelPath() {
+  return window['go']['main']['App']['GetBundledModelPath']();
+}
+
+export function GetModelInfo() {
+  return window['go']['main']['App']['GetModelInfo']();
+}
+
+export function LoadModel(arg1) {
+  return window['go']['main']['App']['LoadModel'](arg1);
+}
+
+export function SaveAndTranscribeRecording(arg1) {
+  return window['go']['main']['App']['SaveAndTranscribeRecording'](arg1);
+}
+
+export function TranscribeAudioData(arg1) {
+  return window['go']['main']['App']['TranscribeAudioData'](arg1);
+}
+
+export function TranscribeFile(arg1) {
+  return window['go']['main']['App']['TranscribeFile'](arg1);
+}

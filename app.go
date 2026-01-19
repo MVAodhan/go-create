@@ -7,14 +7,17 @@ import (
 	"io"
 	"os"
 	"os/exec"
-	// whisper "github.com/ggerganov/whisper.cpp/bindings/go/pkg/whisper"
+	"path/filepath"
+	"strings"
+
+	whisper "github.com/ggerganov/whisper.cpp/bindings/go/pkg/whisper"
 )
 
 // App struct
 type App struct {
 	ctx          context.Context
-	// whisperModel whisper.Model
-	// whisperCtx   whisper.Context
+	whisperModel whisper.Model
+	whisperCtx   whisper.Context
 	modelPath    string
 }
 
@@ -27,32 +30,44 @@ func NewApp() *App {
 // so we can call the runtime methods
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
+	
+}
+
+func (a *App) GetBundledModelPath() string {
+    execPath, _ := os.Executable()
+    execDir := filepath.Dir(execPath)
+    
+    // On macOS: app bundle structure
+    
+	return filepath.Join(execDir, "..", "Resources", "models", "ggml-base.en.bin")
+
+    
 }
 
 // LoadModel loads the Whisper model from the specified path
-// func (a *App) LoadModel(modelPath string) error {
-// 	// Check if model exists
-// 	if _, err := os.Stat(modelPath); os.IsNotExist(err) {
-// 		return fmt.Errorf("model file not found: %s", modelPath)
-// 	}
+func (a *App) LoadModel(modelPath string) error {
+	// Check if model exists
+	if _, err := os.Stat(modelPath); os.IsNotExist(err) {
+		return fmt.Errorf("model file not found: %s", modelPath)
+	}
 
-// 	// Create whisper model
-// 	model, err := whisper.New(modelPath)
-// 	if err != nil {
-// 		return fmt.Errorf("failed to load model: %w", err)
-// 	}
+	// Create whisper model
+	model, err := whisper.New(modelPath)
+	if err != nil {
+		return fmt.Errorf("failed to load model: %w", err)
+	}
 
-// 	// Create context from model
-// 	ctx, err := model.NewContext()
-// 	if err != nil {
-// 		return fmt.Errorf("failed to create context: %w", err)
-// 	}
+	// Create context from model
+	ctx, err := model.NewContext()
+	if err != nil {
+		return fmt.Errorf("failed to create context: %w", err)
+	}
 
-// 	a.whisperModel = model
-// 	a.whisperCtx = ctx
-// 	a.modelPath = modelPath
-// 	return nil
-// }
+	a.whisperModel = model
+	a.whisperCtx = ctx
+	a.modelPath = modelPath
+	return nil
+}
 
 // ConvertToWav converts an audio file to 16kHz mono WAV format using ffmpeg
 func (a *App) ConvertToWav(inputPath, outputPath string) error {
@@ -109,143 +124,169 @@ func (a *App) readWav(path string) ([]float32, error) {
 }
 
 // TranscribeFile transcribes an audio file and returns the text
-// func (a *App) TranscribeFile(path string) (string, error) {
-// 	if a.whisperCtx == nil {
-// 		return "", fmt.Errorf("model not loaded. Please load a model first")
-// 	}
+func (a *App) TranscribeFile(path string) (string, error) {
+	if a.whisperCtx == nil {
+		return "", fmt.Errorf("model not loaded. Please load a model first")
+	}
 
-// 	// Create temporary WAV file
-// 	wavFile := filepath.Join(os.TempDir(), "whisper_temp.wav")
-// 	defer os.Remove(wavFile)
+	// Create temporary WAV file
+	wavFile := filepath.Join(os.TempDir(), "whisper_temp.wav")
+	defer os.Remove(wavFile)
 
-// 	// Convert to WAV
-// 	if err := a.ConvertToWav(path, wavFile); err != nil {
-// 		return "", fmt.Errorf("failed to convert audio: %w", err)
-// 	}
+	// Convert to WAV
+	if err := a.ConvertToWav(path, wavFile); err != nil {
+		return "", fmt.Errorf("failed to convert audio: %w", err)
+	}
 
-// 	// Read WAV data
-// 	data, err := a.readWav(wavFile)
-// 	if err != nil {
-// 		return "", fmt.Errorf("failed to read WAV: %w", err)
-// 	}
+	// Read WAV data
+	data, err := a.readWav(wavFile)
+	if err != nil {
+		return "", fmt.Errorf("failed to read WAV: %w", err)
+	}
 
-// 	// Process with Whisper
-// 	if err := a.whisperCtx.Process(data, nil, nil, nil); err != nil {
-// 		return "", fmt.Errorf("transcription failed: %w", err)
-// 	}
+	// Process with Whisper
+	if err := a.whisperCtx.Process(data, nil, nil, nil); err != nil {
+		return "", fmt.Errorf("transcription failed: %w", err)
+	}
 
-// 	// Get all segments
-// 	var sb strings.Builder
-// 	for {
-// 		segment, err := a.whisperCtx.NextSegment()
-// 		if err != nil {
-// 			break
-// 		}
-// 		sb.WriteString(segment.Text)
-// 		sb.WriteString(" ")
-// 	}
+	// Get all segments
+	var sb strings.Builder
+	for {
+		segment, err := a.whisperCtx.NextSegment()
+		if err != nil {
+			break
+		}
+		sb.WriteString(segment.Text)
+		sb.WriteString(" ")
+	}
 
-// 	result := strings.TrimSpace(sb.String())
-// 	if result == "" {
-// 		return "", fmt.Errorf("no speech detected in audio")
-// 	}
+	result := strings.TrimSpace(sb.String())
+	if result == "" {
+		return "", fmt.Errorf("no speech detected in audio")
+	}
 
-// 	return result, nil
-// }
+	return result, nil
+}
 
 // GetModelInfo returns information about the loaded model
-// func (a *App) GetModelInfo() string {
-// 	if a.whisperCtx == nil {
-// 		return "No model loaded"
-// 	}
-// 	return fmt.Sprintf("Model loaded: %s", filepath.Base(a.modelPath))
-// }
+func (a *App) GetModelInfo() string {
+	if a.whisperCtx == nil {
+		return "No model loaded"
+	}
+	return fmt.Sprintf("Model loaded: %s", filepath.Base(a.modelPath))
+}
 
 // TranscribeAudioData transcribes PCM audio data directly (from browser recording)
 // audioData should be Float32 PCM samples at 16kHz mono
-// func (a *App) TranscribeAudioData(audioData []float32) (string, error) {
-// 	if a.whisperCtx == nil {
-// 		return "", fmt.Errorf("model not loaded. Please load a model first")
-// 	}
+func (a *App) TranscribeAudioData(audioData []float32) (string, error) {
+	if a.whisperCtx == nil {
+		return "", fmt.Errorf("model not loaded. Please load a model first")
+	}
 
-// 	if len(audioData) == 0 {
-// 		return "", fmt.Errorf("no audio data provided")
-// 	}
+	if len(audioData) == 0 {
+		return "", fmt.Errorf("no audio data provided")
+	}
 
-// 	// Process with Whisper
-// 	if err := a.whisperCtx.Process(audioData, nil, nil, nil); err != nil {
-// 		return "", fmt.Errorf("transcription failed: %w", err)
-// 	}
+	// Process with Whisper
+	if err := a.whisperCtx.Process(audioData, nil, nil, nil); err != nil {
+		return "", fmt.Errorf("transcription failed: %w", err)
+	}
 
-// 	// Get all segments
-// 	var sb strings.Builder
-// 	for {
-// 		segment, err := a.whisperCtx.NextSegment()
-// 		if err != nil {
-// 			break
-// 		}
-// 		sb.WriteString(segment.Text)
-// 		sb.WriteString(" ")
-// 	}
+	// Get all segments
+	var sb strings.Builder
+	for {
+		segment, err := a.whisperCtx.NextSegment()
+		if err != nil {
+			break
+		}
+		sb.WriteString(segment.Text)
+		sb.WriteString(" ")
+	}
 
-// 	result := strings.TrimSpace(sb.String())
-// 	if result == "" {
-// 		return "", fmt.Errorf("no speech detected in audio")
-// 	}
+	result := strings.TrimSpace(sb.String())
+	if result == "" {
+		return "", fmt.Errorf("no speech detected in audio")
+	}
 
-// 	return result, nil
-// }
+	return result, nil
+}
 
 // SaveAndTranscribeRecording saves browser audio recording and transcribes it
 // audioBlob is the raw audio data from browser (likely WebM or similar)
-// func (a *App) SaveAndTranscribeRecording(audioBlob []byte) (string, error) {
-// 	if a.whisperCtx == nil {
-// 		return "", fmt.Errorf("model not loaded. Please load a model first")
-// 	}
+func (a *App) SaveAndTranscribeRecording(audioBlob []byte) (string, error) {
+	if a.whisperCtx == nil {
+		return "", fmt.Errorf("model not loaded. Please load a model first")
+	}
 
-// 	// Create temporary files
-// 	tempInput := filepath.Join(os.TempDir(), "whisper_recording.webm")
-// 	tempWav := filepath.Join(os.TempDir(), "whisper_recording.wav")
-// 	defer os.Remove(tempInput)
-// 	defer os.Remove(tempWav)
+	// Create temporary files
+	tempInput := filepath.Join(os.TempDir(), "whisper_recording.webm")
+	tempWav := filepath.Join(os.TempDir(), "whisper_recording.wav")
+	defer os.Remove(tempInput)
+	defer os.Remove(tempWav)
 
-// 	// Save the blob to temp file
-// 	if err := os.WriteFile(tempInput, audioBlob, 0644); err != nil {
-// 		return "", fmt.Errorf("failed to save recording: %w", err)
-// 	}
+	// Save the blob to temp file
+	if err := os.WriteFile(tempInput, audioBlob, 0644); err != nil {
+		return "", fmt.Errorf("failed to save recording: %w", err)
+	}
 
-// 	// Convert to WAV
-// 	if err := a.ConvertToWav(tempInput, tempWav); err != nil {
-// 		return "", fmt.Errorf("failed to convert audio: %w", err)
-// 	}
+	// Convert to WAV
+	if err := a.ConvertToWav(tempInput, tempWav); err != nil {
+		return "", fmt.Errorf("failed to convert audio: %w", err)
+	}
 
-// 	// Read WAV data
-// 	data, err := a.readWav(tempWav)
-// 	if err != nil {
-// 		return "", fmt.Errorf("failed to read WAV: %w", err)
-// 	}
+	// Read WAV data
+	data, err := a.readWav(tempWav)
+	if err != nil {
+		return "", fmt.Errorf("failed to read WAV: %w", err)
+	}
 
-// 	// Process with Whisper
-// 	if err := a.whisperCtx.Process(data, nil, nil, nil); err != nil {
-// 		return "", fmt.Errorf("transcription failed: %w", err)
-// 	}
+	// Process with Whisper
+	if err := a.whisperCtx.Process(data, nil, nil, nil); err != nil {
+		return "", fmt.Errorf("transcription failed: %w", err)
+	}
 
-// 	// Get all segments
-// 	var sb strings.Builder
-// 	for {
-// 		segment, err := a.whisperCtx.NextSegment()
-// 		if err != nil {
-// 			break
-// 		}
-// 		sb.WriteString(segment.Text)
-// 		sb.WriteString(" ")
-// 	}
+	// Get all segments
+	var sb strings.Builder
+	for {
+		segment, err := a.whisperCtx.NextSegment()
+		if err != nil {
+			break
+		}
+		sb.WriteString(segment.Text)
+		sb.WriteString(" ")
+	}
 
-// 	result := strings.TrimSpace(sb.String())
-// 	if result == "" {
-// 		return "", fmt.Errorf("no speech detected in audio")
-// 	}
+	result := strings.TrimSpace(sb.String())
+	if result == "" {
+		return "", fmt.Errorf("no speech detected in audio")
+	}
 
-// 	return result, nil
-// }
+	a.saveToCopy(result)
+	return result, nil
+}
 
+func (a *App) saveToCopy(text string){
+	cmd := exec.Command("pbcopy")
+	stdin, err := cmd.StdinPipe()
+	if err != nil {
+		panic(err)
+	}
+
+	// Start the command
+	if err := cmd.Start(); err != nil {
+		panic(err)
+	}
+
+	// Write the text to pbcopy's stdin
+	if _, err := stdin.Write([]byte(text)); err != nil {
+		panic(err)
+	}
+	stdin.Close()
+
+	// Wait for pbcopy to finish
+	if err := cmd.Wait(); err != nil {
+		panic(err)
+	}
+
+	fmt.Println("Text copied to clipboard. Try pasting it now!")
+}

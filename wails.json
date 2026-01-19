@@ -9,5 +9,12 @@
   "author": {
     "name": "Aodhan Hamilton",
     "email": "hamilton.aodhan@gmail.com"
-  }
+  },
+  "binaries": [
+    {
+      "name": "models",
+      "type": "directory",
+      "path": "./whisper.cpp/models"
+    }
+  ]
 }

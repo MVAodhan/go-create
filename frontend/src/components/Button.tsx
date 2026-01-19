@@ -8,7 +8,6 @@ const CircleButton = ({
   isRecording?: Boolean;
   setIsRecording: React.Dispatch<React.SetStateAction<Boolean>>;
 }) => {
-  console.log(isRecording);
   return (
     <button
       className={`circle-btn ${isRecording ? "recording" : ""}`}
