@@ -51,7 +51,6 @@ A macOS desktop application built with **Wails** (Go + React) and **Whisper.cpp*
    ```
 
 2. **Load the AI model**:
-
    - Click "Load Model" (default path is pre-filled)
    - Wait for confirmation
 
@@ -63,9 +62,8 @@ A macOS desktop application built with **Wails** (Go + React) and **Whisper.cpp*
 
 ## 📚 Documentation
 
-- **[VOICE_DICTATION_SETUP.md](VOICE_DICTATION_SETUP.md)** - Complete setup guide and user manual
-- **[WAILS_WHISPER_GUIDE.md](WAILS_WHISPER_GUIDE.md)** - Technical integration guide
-- **[WHISPER_BUILD_EXPLAINED.md](WHISPER_BUILD_EXPLAINED.md)** - Build process explanation
+- **[User Manual](docs/VOICE_DICTATION_SETUP.md)** - Complete setup guide and user manual
+- **[Build Guide](docs/PRODUCTION_BUILD_GUIDE.md)** - Production build and distribution guide
 
 ## 🛠️ Technology Stack
 
@@ -190,7 +188,7 @@ cd whisper.cpp/models
 ./download-ggml-model.sh base.en
 ```
 
-See [VOICE_DICTATION_SETUP.md](VOICE_DICTATION_SETUP.md) for more troubleshooting tips.
+See [User Manual](docs/VOICE_DICTATION_SETUP.md) for more troubleshooting tips.
 
 ## 📝 License
 
