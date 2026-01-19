@@ -1,6 +1,6 @@
-build/**
-# build/darwin
-# build/bin
+build
+build/darwin
+build/bin
 node_modules
 frontend/dist
 
