@@ -1,5 +1,5 @@
 build
-build/darwin
+build/darwin/*
 build/bin
 node_modules
 frontend/dist

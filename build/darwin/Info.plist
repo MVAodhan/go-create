@@ -59,7 +59,5 @@
           {{end}}
         </array>
         {{end}}
-        <key>NSMicrophoneUsageDescription</key>
-        <string>This app needs access to your microphone for voice dictation and transcription.</string>
     </dict>
 </plist>

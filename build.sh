@@ -66,6 +66,22 @@ echo ""
 wails build
 
 echo ""
+echo "Bundling resources into .app package..."
+# Copy model and Metal shader into the app bundle's Resources folder
+APP_RESOURCES="$PROJECT_DIR/build/bin/go-create.app/Contents/Resources"
+
+# Create models directory in Resources
+mkdir -p "$APP_RESOURCES/models"
+
+# Copy the model file
+cp "$PROJECT_DIR/bundled-resources/models/ggml-medium.en.bin" "$APP_RESOURCES/models/"
+echo "✓ Copied model to: $APP_RESOURCES/models/"
+
+# Copy the Metal shader
+cp "$PROJECT_DIR/bundled-resources/ggml-metal.metal" "$APP_RESOURCES/"
+echo "✓ Copied Metal shader to: $APP_RESOURCES/"
+
+echo ""
 echo "==========================================="
 echo "✓ Build completed successfully!"
 echo "==========================================="

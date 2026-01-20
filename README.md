@@ -1,6 +1,6 @@
 # Voice Transcription & Dictation App
 
-A macOS desktop application built with **Wails** (Go + React) and **Whisper.cpp** for local, privacy-focused voice transcription and accessibility-focused dictation.
+A macOS desktop application built with [Wails](https://wails.io/) (Go + React) and [Whisper.cpp](https://github.com/ggml-org/whisper.cpp) for local, privacy-focused voice dictation.
 
 ## ✨ Features
 
@@ -34,13 +34,9 @@ A macOS desktop application built with **Wails** (Go + React) and **Whisper.cpp*
 
 ### Prerequisites
 
-1. **Install ffmpeg**:
+1. **Install [ffmpeg](https://www.ffmpeg.org/)**:
 
-   ```bash
-   brew install ffmpeg
-   ```
-
-2. **Grant microphone permissions** when prompted
+2. **Grant microphone permissions when prompted**
 
 ### Running the App
 
@@ -50,20 +46,21 @@ A macOS desktop application built with **Wails** (Go + React) and **Whisper.cpp*
    ./dev.sh
    ```
 
-2. **Load the AI model**:
-   - Click "Load Model" (default path is pre-filled)
-   - Wait for confirmation
-
-3. **Start dictating**:
+2. **Start dictating**:
    - Click "🎙️ Start Recording"
    - Speak into your microphone
    - Click "⏹️ Stop Recording"
-   - Your speech appears as text!
+   - Your speech will be pasted into pbpaste
 
 ## 📚 Documentation
 
-- **[User Manual](docs/VOICE_DICTATION_SETUP.md)** - Complete setup guide and user manual
 - **[Build Guide](docs/PRODUCTION_BUILD_GUIDE.md)** - Production build and distribution guide
+
+### Additional Resources
+
+- [Whisper.cpp Documentation](https://github.com/ggerganov/whisper.cpp)
+- [Wails Documentation](https://wails.io)
+- [Web MediaRecorder API](https://developer.mozilla.org/en-US/docs/Web/API/MediaRecorder)
 
 ## 🛠️ Technology Stack
 
@@ -130,8 +127,19 @@ TranscribeAudioData(audioData []float32) (string, error)
 
    ```bash
    cd whisper.cpp/models
-   ./download-ggml-model.sh base.en
+   ./download-ggml-model.sh medium.en
    cd ../..
+   ```
+
+   **Note**: For local development, the app looks for models in the following order:
+   - `bundled-resources/models/` (preferred for development)
+   - `whisper.cpp/models/` (fallback)
+
+   To use the preferred development location:
+
+   ```bash
+   mkdir -p bundled-resources/models
+   cp whisper.cpp/models/ggml-medium.en.bin bundled-resources/models/
    ```
 
 3. **Run in development**:
@@ -148,6 +156,53 @@ wails build
 ```
 
 The compiled app will be in `build/bin/`.
+
+## 🤝 Contributing
+
+To add features or improve dictation:
+
+1. **Backend changes**: Edit `app.go`
+2. **Frontend changes**: Edit `frontend/src/App.tsx`
+3. **Regenerate bindings**: `wails generate module`
+4. **Test**: `./dev.sh`
+
+### Model Location for Development vs Production
+
+The app uses a smart fallback system to locate models in different environments. The `GetBundledModelPath()` function searches in the following order:
+
+**Lookup Order (always checked in this sequence):**
+
+1. **Production Bundle Path** (checked first):
+   - `MyApp.app/Contents/Resources/models/ggml-medium.en.bin`
+   - This path is relative to the executable in a built app bundle
+
+2. **Development Bundle Path** (checked if #1 not found):
+   - `bundled-resources/models/ggml-medium.en.bin`
+   - Preferred location for local development
+
+3. **Original Source Path** (final fallback):
+   - `whisper.cpp/models/ggml-medium.en.bin`
+   - Where models are initially downloaded
+
+**How this works in practice:**
+
+- **In production**: The app first checks the app bundle's Resources folder. If the model wasn't properly bundled, it falls back to development paths (useful for debugging).
+- **In development**: The production path won't exist, so it immediately tries the `bundled-resources/` directory, then falls back to `whisper.cpp/models/`.
+
+To set up models for local development:
+
+```bash
+# Download the model
+cd whisper.cpp/models
+./download-ggml-model.sh <model-name>
+
+# Copy to preferred development location
+mkdir -p ../../bundled-resources/models
+cp ggml-<model-name>.bin ../../bundled-resources/models/
+cd ../..
+```
+
+Available model names: `tiny.en`, `base.en`, `small.en`, `medium.en` (see Model Options table above for details).
 
 ## 📊 Model Options
 
@@ -166,33 +221,6 @@ The compiled app will be in `build/bin/`.
 - No time limits on recordings
 - Text accumulation for building longer documents
 - One-click copy to clipboard
-
-## 🐛 Troubleshooting
-
-### Common Issues
-
-**"ffmpeg conversion failed"**
-
-```bash
-brew install ffmpeg
-```
-
-**"Microphone access denied"**
-
-- Grant permissions in System Settings > Privacy & Security > Microphone
-
-**"Model file not found"**
-
-```bash
-cd whisper.cpp/models
-./download-ggml-model.sh base.en
-```
-
-See [User Manual](docs/VOICE_DICTATION_SETUP.md) for more troubleshooting tips.
-
-## 📝 License
-
-See LICENSE file in the repository.
 
 ## 🙏 Acknowledgments
 

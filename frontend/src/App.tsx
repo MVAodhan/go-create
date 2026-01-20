@@ -62,27 +62,6 @@ function App() {
     }
   }, [isRecording]);
 
-  async function loadModel() {
-    if (!modelPath) {
-      setError("Please enter a model path");
-      return;
-    }
-
-    setIsLoading(true);
-    setError("");
-
-    try {
-      await LoadModel(modelPath);
-      const info = await GetModelInfo();
-      setModelInfo(info);
-      setError("");
-    } catch (err) {
-      setError(`Failed to load model: ${err}`);
-    } finally {
-      setIsLoading(false);
-    }
-  }
-
   async function startRecording() {
     // Check if model is loaded first
     if (modelInfo === "No model loaded") {
@@ -155,10 +134,6 @@ function App() {
     } finally {
       setIsLoading(false);
     }
-  }
-
-  function clearDictation() {
-    setDictationText("");
   }
 
   return (
